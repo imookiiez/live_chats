@@ -2,17 +2,14 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const connectdb = require("./../dbconnect");
 const Chats = require("./../models/Chat");
+const jwt = require("./jwt");
 
 const router = express.Router();
 
-router.route("/").get((req, res, next) => {
+router.get("/",jwt.verify, function (req, res, next)
+ {
   res.setHeader("Content-Type", "application/json");
-  res.statusCode = 200;
-
   connectdb.then(db => {
-    let data = Chats.find({
-      message: "Anonymous"
-    });
     Chats.find({
       $or: [{
           $and: [{
@@ -30,7 +27,7 @@ router.route("/").get((req, res, next) => {
         }
       ]
     }).then(chat => {
-      res.json(chat);
+      res.status(200).json(chat);
     });
   });
 });

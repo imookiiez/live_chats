@@ -2,17 +2,15 @@ const express = require("express");
 const router = express.Router();
 const connectdb = require("./../dbconnect");
 const User = require("./../models/User");
+const jwt = require("./jwt");
 const bodyParser = require("body-parser");
 
 var urlencodedParser = bodyParser.urlencoded({
   extended: false
 });
 
-// router.route("/").post((req, res, next) => {
-  router.post("/",urlencodedParser, function(req, res,next) {
-  console.log(req);
+router.post("/",urlencodedParser, function (req, res, next) {
   res.setHeader("Content-Type", "application/json");
-  res.statusCode = 200;
   connectdb.then(db => {
     User.find({
       $and: [{
@@ -20,12 +18,18 @@ var urlencodedParser = bodyParser.urlencoded({
       }, {
         password: req.body.password
       }]
-    }).then(chat => {
-      if (chat.length) {
-        return res.json(1)
-      } else {
-        return res.json(0)
+    }).then(response => {
+      if (response.length){
+        const token = jwt.sign({
+          _id:response[0]._id,
+          username: response[0].username,
+          position: response[0].position,
+          team:response[0].team
+        });
+        let data = {'token':token,'username':response[0].username,'position':response[0].position,'team':response[0].team};
+        return res.status(200).json(data)
       }
+      else{return res.status(404).json(0)}
     });
   });
 });

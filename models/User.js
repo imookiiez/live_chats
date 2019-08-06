@@ -8,6 +8,12 @@ const UserSchema = new Schema(
     },
     password:{
       type: String
+    },
+    position:{
+      type: String
+    },
+    team:{
+      type: String
     }
   },
   {
