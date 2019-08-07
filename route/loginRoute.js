@@ -13,11 +13,12 @@ router.post("/",urlencodedParser, function (req, res, next) {
   res.setHeader("Content-Type", "application/json");
   connectdb.then(db => {
     User.find({
-      $and: [{
         username: req.body.username
-      }, {
-        password: req.body.password
-      }]
+      // $and: [{
+      //   username: req.body.username
+      // }, {
+      //   password: req.body.password
+      // }]
     }).then(response => {
       if (response.length){
         const token = jwt.sign({

@@ -1,35 +1,45 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const connectdb = require("./../dbconnect");
 const Chats = require("./../models/Chat");
 const jwt = require("./jwt");
 
 const router = express.Router();
 
-router.get("/",jwt.verify, function (req, res, next)
- {
+router.get("/", jwt.verify, function (req, res, next) {
+  var sender = req.headers["sender"];
+  var received = req.headers["received"];
+  let RoomId = Date.now()
   res.setHeader("Content-Type", "application/json");
   connectdb.then(db => {
     Chats.find({
       $or: [{
           $and: [{
-            sender: "Anonymous"
+            sender: sender
           }, {
-            received: "Me"
+            received: received
           }]
         },
         {
           $and: [{
-            sender: "Me"
+            sender: received
           }, {
-            received: "Anonymous"
+            received: sender
           }]
         }
       ]
     }).then(chat => {
-      res.status(200).json(chat);
+      let data = {
+        'chat': chat,
+        'room': '1'
+      }
+      res.status(200).json(data);
     });
+
   });
 });
+
+// router.get('/users', (req, res) => {
+//   res.send(JSON.stringify(userList));
+// })
 
 module.exports = router;

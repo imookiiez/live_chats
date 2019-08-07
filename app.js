@@ -12,10 +12,11 @@ const userRouter = require("./route/userRouter");
 const http = require("http").Server(app);
 
 // require the socket.io module
-const io = require("socket.io");
+const io = require('socket.io')(http);
 
 const port = 5000;
 
+let userList = [];
 //bodyparser middleware
 app.use(bodyParser.json());
 
@@ -24,20 +25,39 @@ app.use("/chats", chatRouter);
 app.use("/login", loginRouter);
 app.use("/register", registerRouter);
 app.use("/user", userRouter);
-
+app.get('/users', (req, res) => {
+  res.send(JSON.stringify(userList));
+})
 //set the express.static middleware
 app.use(express.static(__dirname + "/public"));
 
-//integrating socketio
-socket = io(http);
 
 //database connection
 const Chat = require("./models/Chat");
 const connect = require("./dbconnect");
 
 //setup event listener
-socket.on("connection", socket => {
+io.on("connection", socket => {
   console.log("user connected");
+  socket.on('subscribe', function (data) {
+    console.log('subscribe');
+    if (typeof data === "undefined") {
+      io.to(socket.id).emit('sent-to-user', 'userId is undefined');
+      console.log('the property is not available...');
+    } else {
+      io.to(socket.id).emit('sent-to-user', data.userId+'connected');
+      let indexArray = userList.findIndex((item) => item.userId == data.userId.toLowerCase());
+      if (indexArray != -1) {
+        userList.splice(indexArray, 1)
+      };
+      console.log('subscribe remove ' + data.userId.toLowerCase() + ' completed new socket.id=' + socket.id);
+      userList.push({
+        userId: data.userId.toLowerCase(),
+        socketId: socket.id
+      });
+      io.to(socket.id).emit('sent-to-user', 'userId:' + data.userId.toLowerCase() + 'is connected' + ' socket.id=' + socket.id);
+    }
+  });
 
   socket.on("disconnect", function () {
     console.log("user disconnected");
@@ -59,8 +79,9 @@ socket.on("connection", socket => {
   socket.on("chat message", function (response) {
     console.log(response);
     //broadcast message to everyone in port:5000 except yourself.
-    socket.broadcast.emit("received", {
-      message: response.msg
+    socket.broadcast.emit(response.room, {
+      message: response.msg,
+      received: response.sender
     });
 
     //save chat to the database
@@ -70,11 +91,26 @@ socket.on("connection", socket => {
         message: response.msg,
         sender: response.sender,
         received: response.received,
-        room: response.room
+        room: response.room,
+        type: response.type,
       });
       chatMessage.save();
     });
+
   });
+
+  Array.prototype.remove = function () {
+    var what, a = arguments,
+      L = a.length,
+      ax;
+    while (L && this.length) {
+      what = a[--L];
+      while ((ax = this.indexOf(what)) !== -1) {
+        this.splice(ax, 1);
+      }
+    }
+    return this;
+  };
 });
 
 http.listen(port, () => {

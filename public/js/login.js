@@ -4,7 +4,7 @@ $('.btn').click(function (e) {
     url: '/login',
     data: {
       "username": $('.email').val(),
-      "password": $('.password').val()
+      // "password": $('.password').val()
     },
     statusCode: {
       404: function () {
