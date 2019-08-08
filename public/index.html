@@ -29,16 +29,25 @@
 
     <div class="bottom_wrapper clearfix display-disable">
       <i id="typing"></i>
-      <form id="form">
-        <div class="message_input_wrapper">
-          <input type="hidden" id="received" value="" />
-          <input type="hidden" id="room" value="" />
-          <input id="message" class="message_input" placeholder="Type your message here..." />
-        </div>
-        <button class="send_message">
-          Send
-        </button>
-      </form>
+      <!-- <form id="form"> -->
+      <button class="send_file" onclick="">
+        file
+      </button>
+      <div class="display-disable">
+          <input type="file" id="file"/>
+      </div>
+      <div class="message_input_wrapper">
+        <input type="hidden" id="received" value="" />
+        <input type="hidden" id="socketId" value="" />
+        <input id="message" class="message_input" placeholder="Type your message here..." />
+      </div>
+      <!-- <button class="send_file">
+          Send F
+        </button> -->
+      <button class="send_message">
+        Send M
+      </button>
+      <!-- </form> -->
     </div>
   </div>
 

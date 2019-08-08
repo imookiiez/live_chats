@@ -8,7 +8,6 @@ const router = express.Router();
 router.get("/", jwt.verify, function (req, res, next) {
   var sender = req.headers["sender"];
   var received = req.headers["received"];
-  let RoomId = Date.now()
   res.setHeader("Content-Type", "application/json");
   connectdb.then(db => {
     Chats.find({
@@ -28,11 +27,7 @@ router.get("/", jwt.verify, function (req, res, next) {
         }
       ]
     }).then(chat => {
-      let data = {
-        'chat': chat,
-        'room': '1'
-      }
-      res.status(200).json(data);
+      res.status(200).json(chat);
     });
 
   });

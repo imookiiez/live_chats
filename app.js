@@ -6,7 +6,6 @@ const bodyParser = require("body-parser");
 const chatRouter = require("./route/chatroute");
 const loginRouter = require("./route/loginRoute");
 const registerRouter = require("./route/registerRouter");
-const userRouter = require("./route/userRouter");
 
 //require the http module
 const http = require("http").Server(app);
@@ -21,10 +20,15 @@ let userList = [];
 app.use(bodyParser.json());
 
 //route
+app.get('/', function (req, res) {
+  res.sendFile(__dirname + '/public/login.html');
+});
+app.get('/chat', function (req, res) {
+  res.sendFile(__dirname + '/public/index.html');
+});
 app.use("/chats", chatRouter);
 app.use("/login", loginRouter);
 app.use("/register", registerRouter);
-app.use("/user", userRouter);
 app.get('/users', (req, res) => {
   res.send(JSON.stringify(userList));
 })
@@ -45,7 +49,8 @@ io.on("connection", socket => {
       io.to(socket.id).emit('sent-to-user', 'userId is undefined');
       console.log('the property is not available...');
     } else {
-      io.to(socket.id).emit('sent-to-user', data.userId+'connected');
+      io.emit('sent-to-connect', data.userId + ' connected');
+      // io.to(socket.id).emit('sent-to-user', data.userId + ' connected');
       let indexArray = userList.findIndex((item) => item.userId == data.userId.toLowerCase());
       if (indexArray != -1) {
         userList.splice(indexArray, 1)
@@ -53,11 +58,15 @@ io.on("connection", socket => {
       console.log('subscribe remove ' + data.userId.toLowerCase() + ' completed new socket.id=' + socket.id);
       userList.push({
         userId: data.userId.toLowerCase(),
-        socketId: socket.id
+        socketId: socket.id,
+        position: data.position,
+        team: data.team
       });
-      io.to(socket.id).emit('sent-to-user', 'userId:' + data.userId.toLowerCase() + 'is connected' + ' socket.id=' + socket.id);
+      // io.to(socket.id).emit('sent-to-user', 'user : ' + data.userId.toLowerCase() + " position : " + data.position + ' is connected' + ' socket.id=' + socket.id);
+      // io.emit('sent-to-user', 'user : ' + data.userId.toLowerCase() + " position : " + data.position + ' is connected' + ' socket.id=' + socket.id);
     }
   });
+
 
   socket.on("disconnect", function () {
     console.log("user disconnected");
@@ -76,13 +85,15 @@ io.on("connection", socket => {
     socket.broadcast.emit("notifyStopTyping");
   });
 
-  socket.on("chat message", function (response) {
+  socket.on("sent-to-user", function (response) {
     console.log(response);
     //broadcast message to everyone in port:5000 except yourself.
-    socket.broadcast.emit(response.room, {
-      message: response.msg,
-      received: response.sender
-    });
+    if ('msg' = response.msg) {
+      socket.to(response.socketReceived).emit('Received', {
+        message: response.msg,
+        received: response.sender
+      });
+    }
 
     //save chat to the database
     connect.then(db => {
@@ -91,7 +102,6 @@ io.on("connection", socket => {
         message: response.msg,
         sender: response.sender,
         received: response.received,
-        room: response.room,
         type: response.type,
       });
       chatMessage.save();

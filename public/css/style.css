@@ -212,9 +212,8 @@ body {
 }
 
 .bottom_wrapper .send_message {
-  width: 140px;
+  width: 70px;
   height: 50px;
-  display: inline-block;
   border-radius: 50px;
   background-color: #a3d063;
   border: 2px solid #a3d063;
@@ -225,7 +224,20 @@ body {
   float: right;
 }
 
-.bottom_wrapper .send_message:hover {
+.bottom_wrapper .send_file {
+  width: 70px;
+  height: 50px;
+  border-radius: 50px;
+  background-color: #a3d063;
+  border: 2px solid #a3d063;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s linear;
+  text-align: center;
+  float: left;
+}
+
+.bottom_wrapper .send_message:hover, .bottom_wrapper .send_file:hover {
   color: #a3d063;
   background-color: #fff;
 }

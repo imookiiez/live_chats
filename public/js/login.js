@@ -15,7 +15,7 @@ $('.btn').click(function (e) {
         localStorage.setItem('n', response.username);
         localStorage.setItem('p', response.position);
         localStorage.setItem('tm', response.team);
-        window.location = "/"
+        window.location = "/chat"
       }
     }
   })

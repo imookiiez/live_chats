@@ -12,9 +12,6 @@ const chatSchema = new Schema(
     received: {
       type: String
     },
-    room:{
-      type: String
-    },
     type:{
       type: String
     }
