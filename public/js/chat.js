@@ -18,41 +18,57 @@ var socketReceived;
       'socketReceived': socketReceived
     }
     socket.emit("sent-to-user", dataSend);
-
     messages.appendChild(li).append($("#message").val());
     let span = document.createElement("span");
     messages.appendChild(span).append("by " + sender + ": " + "just now");
+    toBottom()
     $("#message").val("");
     return false;
   });
 
   $(".send_file").click(function () {
-    $( "#file" ).trigger( "click" );
+    $("#file").trigger("click");
   })
 
-  $('#file').change(function(){
+  $('#file').change(function () {
 
     let files = $(this).context.files[0];
+    let filesName = $(this).context.files[0].name;
     let dataSend = {
       'file': files,
+      'name': filesName,
       'sender': sender,
       'received': $("#received").val(),
       'type': 'file',
       'socketReceived': socketReceived
     }
-    console.log('send');
-    console.log(dataSend);
-    alert(JSON.stringify(dataSend))
+    socket.emit("sent-to-user", dataSend);
+
+    var messages = document.getElementById("messages");
+    let img = document.createElement("img");
+    let span = document.createElement("span");
+    img.src = "asset/uploads/" + filesName;
+    messages.appendChild(img);
+    messages.appendChild(span).append("by " + sender + ": " + "just now");
+    $("#file").val("");
+    toBottom()
+    return false;
   })
 
   socket.on('Received', data => {
     let li = document.createElement("li");
+    let img = document.createElement("img");
     let span = document.createElement("span");
     var messages = document.getElementById("messages");
-    messages.appendChild(li).append(data.message);
+    if ("msg" == data.type) {
+      messages.appendChild(li).append(data.message);
+    } else if ("file" == data.type) {
+      img.src = data.message;
+      messages.appendChild(img);
+    }
     messages.appendChild(span).append("by " + data.received + ": " + "just now");
+    toBottom()
   });
-
 })();
 
 socket.on('sent-to-connect', function (msg) {
@@ -81,6 +97,7 @@ socket.on('sent-to-connect', function (msg) {
       window.location = "/"
     })
 });
+
 
 // fetching initial listuser from the database
 (function () {
@@ -112,16 +129,23 @@ function startChat(received, socketId) {
     .then(json => {
       json.map(data => {
         let li = document.createElement("li");
+        let img = document.createElement("img");
         let span = document.createElement("span");
-        messages.appendChild(li).append(data.message);
+        if ("msg" == data.type) {
+          messages.appendChild(li).append(data.message);
+        } else if ("file" == data.type) {
+          img.src = data.message;
+          messages.appendChild(img);
+        }
         messages
           .appendChild(span)
           .append("by " + data.sender + ": " + formatTimeAgo(data.createdAt));
       });
+      toBottom()
     })
     .catch(err => {
       window.location = "/"
-    })
+    });
 
 }
 
@@ -154,3 +178,13 @@ messageInput.addEventListener("keyup", () => {
 socket.on("notifyStopTyping", () => {
   typing.innerText = "";
 });
+
+function toBottom() {
+  console.log('toBottom');
+  // var element = document.getElementById('messages');
+  // element.scrollTo(0, element.scrollHeight)
+  setTimeout(function () {
+    var element = document.getElementById('messages');
+    element.scrollTo(0, element.scrollHeight)
+  }, 150);
+}
