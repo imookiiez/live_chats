@@ -33,26 +33,36 @@ var socketReceived;
   $('#file').change(function () {
 
     let files = $(this).context.files[0];
-    let filesName = $(this).context.files[0].name;
+    let path = $(this).context.files[0].name;
+    let type =path.split('.');
+    let filesName = Date.now()+"_"+Math.floor(1000 + Math.random() * 9000);
     let dataSend = {
       'file': files,
-      'name': filesName,
+      'name': filesName+"."+type[type.length - 1],
       'sender': sender,
       'received': $("#received").val(),
       'type': 'file',
       'socketReceived': socketReceived
     }
+    if(isImage(type[type.length - 1])){
     socket.emit("sent-to-user", dataSend);
-
-    var messages = document.getElementById("messages");
-    let img = document.createElement("img");
-    let span = document.createElement("span");
-    img.src = "asset/uploads/" + filesName;
-    messages.appendChild(img);
-    messages.appendChild(span).append("by " + sender + ": " + "just now");
+    let Render = new FileReader()
+    Render.readAsDataURL(files)
+    Render.onload =()=>{
+      var messages = document.getElementById("messages");
+      let img = document.createElement("img");
+      let span = document.createElement("span");
+      img.src = Render.result; //here
+      messages.appendChild(img);
+      messages.appendChild(span).append("by " + sender + ": " + "just now");
+      $("#file").val("");
+      toBottom()
+      return false;
+    }
+  }else{
     $("#file").val("");
-    toBottom()
-    return false;
+    alert("please send picture only");
+  }
   })
 
   socket.on('Received', data => {
@@ -187,4 +197,15 @@ function toBottom() {
     var element = document.getElementById('messages');
     element.scrollTo(0, element.scrollHeight)
   }, 150);
+}
+
+function isImage(ext) {
+  switch (ext.toLowerCase()) {
+  case 'jpg':
+  case 'gif':
+  case 'bmp':
+  case 'png':
+      return true;
+  }
+  return false;
 }

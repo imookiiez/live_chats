@@ -259,8 +259,9 @@ body {
   font-size: 15px;
   color: rgb(13, 223, 153);
   background: #f7a30675;
-  border-radius: 5px;
+  border-radius: 7px;
   width: fit-content;
+  padding: 5px;
 }
 
 .messages>span {

@@ -5,7 +5,7 @@ const jwt = require("./jwt");
 
 const router = express.Router();
 
-router.get("/", jwt.verify, function (req, res, next) {
+router.get("/", function (req, res, next) {
   var sender = req.headers["sender"];
   var received = req.headers["received"];
   res.setHeader("Content-Type", "application/json");
