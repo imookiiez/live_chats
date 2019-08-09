@@ -26,11 +26,11 @@ var socketReceived;
     return false;
   });
 
-  $(".send_file").click(function () {
-    $("#file").trigger("click");
+  $(".send_image").click(function () {
+    $("#image").trigger("click");
   })
 
-  $('#file').change(function () {
+  $('#image').change(function () {
 
     let files = $(this).context.files[0];
     let path = $(this).context.files[0].name;
@@ -55,12 +55,12 @@ var socketReceived;
       img.src = Render.result; //here
       messages.appendChild(img);
       messages.appendChild(span).append("by " + sender + ": " + "just now");
-      $("#file").val("");
+      $("#image").val("");
       toBottom()
       return false;
     }
   }else{
-    $("#file").val("");
+    $("#image").val("");
     alert("please send picture only");
   }
   })
