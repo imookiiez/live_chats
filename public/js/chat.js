@@ -5,8 +5,15 @@ var team = localStorage.getItem('tm');
 var messages = document.getElementById("messages");
 var listname = document.getElementById("listname");
 var socketReceived;
+var userlist;
+
 
 (function () {
+  $("#message").keyup(function (e) {
+    if (e.keyCode == 13) {
+      $(".send_message").trigger("click");
+    }
+  })
   $(".send_message").click(function (e) {
     let li = document.createElement("li");
     // e.preventDefault(); // prevents page reloading
@@ -18,6 +25,7 @@ var socketReceived;
       'socketReceived': socketReceived
     }
     socket.emit("sent-to-user", dataSend);
+    li.setAttribute("class", "sender");
     messages.appendChild(li).append($("#message").val());
     let span = document.createElement("span");
     messages.appendChild(span).append("by " + sender + ": " + "just now");
@@ -26,58 +34,99 @@ var socketReceived;
     return false;
   });
 
-  $(".send_image").click(function () {
-    $("#image").trigger("click");
+  $(".send_file").click(function () {
+    $("#file").trigger("click");
   })
 
-  $('#image').change(function () {
+  $('#file').change(function () {
 
     let files = $(this).context.files[0];
     let path = $(this).context.files[0].name;
-    let type =path.split('.');
-    let filesName = Date.now()+"_"+Math.floor(1000 + Math.random() * 9000);
-    let dataSend = {
-      'file': files,
-      'name': filesName+"."+type[type.length - 1],
-      'sender': sender,
-      'received': $("#received").val(),
-      'type': 'file',
-      'socketReceived': socketReceived
-    }
-    if(isImage(type[type.length - 1])){
-    socket.emit("sent-to-user", dataSend);
-    let Render = new FileReader()
-    Render.readAsDataURL(files)
-    Render.onload =()=>{
-      var messages = document.getElementById("messages");
-      let img = document.createElement("img");
+    let type = path.split('.');
+    let filesName = Date.now() + "_" + Math.floor(1000 + Math.random() * 9000);
+    let li = document.createElement("li");
+    let img = document.createElement("img");
+    let alink = document.createElement("a");
+    let span = document.createElement("span");
+    if (isImage(type[type.length - 1])) {
+      let dataSend = {
+        'file': files,
+        'name': filesName + "." + type[type.length - 1],
+        'sender': sender,
+        'received': $("#received").val(),
+        'type': 'image',
+        'socketReceived': socketReceived
+      }
+      socket.emit("sent-to-user", dataSend);
+      let Render = new FileReader()
+      Render.readAsDataURL(files)
+      Render.onload = () => {
+        img.setAttribute('src', Render.result);
+        img.setAttribute('width', '40%');
+        alink.setAttribute('target', '_blank');
+        alink.setAttribute('href', "/asset/uploads/" + filesName + "." + type[type.length - 1]);
+        // messages.appendChild(alink).append(img);
+        alink.appendChild(img);
+        li.setAttribute("class", "background-transparent");
+        messages.appendChild(li).append(alink)
+        messages.appendChild(span).append("by " + sender + ": " + "just now");
+        $("#file").val("");
+        toBottom()
+        return false;
+      }
+    } else {
+      let dataSend = {
+        'file': files,
+        'name': filesName + "." + type[type.length - 1],
+        'sender': sender,
+        'received': $("#received").val(),
+        'type': 'file',
+        'socketReceived': socketReceived
+      }
+      socket.emit("sent-to-user", dataSend);
+
+      let li = document.createElement("li");
+      let alink = document.createElement("a");
       let span = document.createElement("span");
-      img.src = Render.result; //here
-      messages.appendChild(img);
+      alink.setAttribute('target', '_blank');
+      alink.setAttribute('href', "/asset/uploads/" + filesName + "." + type[type.length - 1]);
+      messages.appendChild(alink).append(filesName + "." + type[type.length - 1])
+      li.setAttribute("class", "sender");
+      messages.appendChild(li).append(alink);
       messages.appendChild(span).append("by " + sender + ": " + "just now");
-      $("#image").val("");
+      $("#file").val("");
       toBottom()
       return false;
     }
-  }else{
-    $("#image").val("");
-    alert("please send picture only");
-  }
   })
 
   socket.on('Received', data => {
     let li = document.createElement("li");
     let img = document.createElement("img");
     let span = document.createElement("span");
-    var messages = document.getElementById("messages");
-    if ("msg" == data.type) {
-      messages.appendChild(li).append(data.message);
-    } else if ("file" == data.type) {
-      img.src = data.message;
-      messages.appendChild(img);
+    let alink = document.createElement("a");
+    li.setAttribute("class", "received");
+    if (data.sender = $('#received').val()) {
+      if ("msg" == data.type) {
+        messages.appendChild(li).append(data.message);
+      } else if ("image" == data.type) {
+        img.setAttribute('src', data.message);
+        img.setAttribute('width', '40%');
+        alink.setAttribute('target', '_blank');
+        alink.setAttribute('href', data.message);
+        alink.appendChild(img);
+        li.setAttribute("class", "background-transparent");
+        messages.appendChild(li).append(alink)
+      } else if ("file" == data.type) {
+        let filename = data.message.split('/');
+        alink.setAttribute('target', '_blank');
+        alink.setAttribute('href', data.message);
+        messages.appendChild(alink).append(filename[filename.length - 1])
+        messages.appendChild(li).append(alink);
+      }
+      messages.appendChild(span).append("by " + data.received + ": " + "just now");
+      toBottom()
     }
-    messages.appendChild(span).append("by " + data.received + ": " + "just now");
-    toBottom()
   });
 })();
 
@@ -94,10 +143,11 @@ socket.on('sent-to-connect', function (msg) {
     })
     .then(json => {
       $("#listname").html('');
+      userlist = JSON.stringify(json);
       json.map(data => {
         if (sender != data.userId && position != data.position && team == data.team) {
           let li = document.createElement("li");
-          li.className = "name";
+          li.setAttribute('class', "name " + data.userId);
           li.setAttribute("onClick", "startChat('" + data.userId + "','" + data.socketId + "')");
           listname.appendChild(li).append(data.userId)
         }
@@ -122,6 +172,8 @@ socket.on('sent-to-connect', function (msg) {
 function startChat(received, socketId) {
   $("#messages").html('');
   $("#received").val(received);
+  received = received;
+  console.log(received);
   socketReceived = socketId;
   $(".bottom_wrapper").removeClass('display-disable')
   // fetching initial chat messages from the database
@@ -140,16 +192,35 @@ function startChat(received, socketId) {
       json.map(data => {
         let li = document.createElement("li");
         let img = document.createElement("img");
+        let alink = document.createElement("a");
         let span = document.createElement("span");
+        if (data.sender == sender) {
+          li.setAttribute("class", "sender");
+        } else {
+          li.setAttribute("class", "received");
+        }
         if ("msg" == data.type) {
           messages.appendChild(li).append(data.message);
+        } else if ("image" == data.type) {
+          img.setAttribute('src', data.message);
+          img.setAttribute('width', '40%');
+          alink.setAttribute('target', '_blank');
+          alink.setAttribute('href', data.message);
+          alink.appendChild(img);
+          li.setAttribute("class", "background-transparent");
+          messages.appendChild(li).append(alink)
         } else if ("file" == data.type) {
-          img.src = data.message;
-          messages.appendChild(img);
+          let filename = data.message.split('/');
+          alink.setAttribute('target', '_blank');
+          alink.setAttribute('href', data.message);
+          messages.appendChild(alink).append(filename[filename.length - 1])
+          messages.appendChild(li).append(alink);
         }
         messages
           .appendChild(span)
           .append("by " + data.sender + ": " + formatTimeAgo(data.createdAt));
+        // span.append("by " + data.sender + ": " + formatTimeAgo(data.createdAt));
+        // messages.appendChild(li).append(span);
       });
       toBottom()
     })
@@ -170,18 +241,18 @@ messageInput.addEventListener("keypress", () => {
     user: "Someone",
     message: "is typing..."
   });
-  console.log("is typing...");
+  // console.log("is typing...");
 });
 
 socket.on("notifyTyping", data => {
   typing.innerText = data.user + " " + data.message;
-  console.log(data.user + data.message);
+  // console.log(data.user + data.message);
 });
 
 //stop typing
 messageInput.addEventListener("keyup", () => {
   socket.emit("stopTyping", "");
-  console.log("stopTyping");
+  // console.log("stopTyping");
 
 });
 
@@ -189,8 +260,11 @@ socket.on("notifyStopTyping", () => {
   typing.innerText = "";
 });
 
+function read(sender) {
+  $("." + sender).trigger("click");
+}
+
 function toBottom() {
-  console.log('toBottom');
   // var element = document.getElementById('messages');
   // element.scrollTo(0, element.scrollHeight)
   setTimeout(function () {
@@ -201,10 +275,11 @@ function toBottom() {
 
 function isImage(ext) {
   switch (ext.toLowerCase()) {
-  case 'jpg':
-  case 'gif':
-  case 'bmp':
-  case 'png':
+    case 'jpg':
+    case 'jpge':
+    case 'gif':
+    case 'bmp':
+    case 'png':
       return true;
   }
   return false;

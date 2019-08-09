@@ -88,11 +88,12 @@ io.on("connection", socket => {
   });
 
   socket.on("sent-to-user", function (response) {
-    console.log(response);
+    // console.log(response);
     //broadcast message to everyone in port:5000 except yourself.
     if ('msg' == response.type) {
       socket.to(response.socketReceived).emit('Received', {
         message: response.msg,
+        sender: response.sender,
         received: response.sender,
         type: response.type
       });
@@ -108,15 +109,16 @@ io.on("connection", socket => {
         chatMessage.save();
       });
 
-    } else if ('file' == response.type) {
+    } else if ('file' == response.type || 'image' == response.type) {
       if (response.file) {
         let path = '/asset/uploads/' + response.name;
-        fs.writeFile("public"+path, response.file, function (err) {
+        fs.writeFile("public" + path, response.file, function (err) {
           if (err) {
             console.log('File could not be saved.');
           } else {
             socket.to(response.socketReceived).emit('Received', {
               message: path,
+              sender: response.sender,
               received: response.sender,
               type: response.type
             });

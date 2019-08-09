@@ -13,7 +13,7 @@ router.post("/",urlencodedParser, function (req, res, next) {
   res.setHeader("Content-Type", "application/json");
   connectdb.then(db => {
     User.find({
-        username: req.body.username
+        username: req.body.username.toLowerCase()
       // $and: [{
       //   username: req.body.username
       // }, {
