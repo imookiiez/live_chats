@@ -46,7 +46,6 @@ const connect = require("./dbconnect");
 io.on("connection", socket => {
   console.log("user connected");
   socket.on('subscribe', function (data) {
-    console.log('subscribe');
     if (typeof data === "undefined") {
       io.to(socket.id).emit('sent-to-user', 'userId is undefined');
       console.log('the property is not available...');

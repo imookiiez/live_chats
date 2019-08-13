@@ -28,7 +28,7 @@ var userlist;
     li.setAttribute("class", "sender");
     messages.appendChild(li).append($("#message").val());
     let span = document.createElement("span");
-    messages.appendChild(span).append("by " + sender + ": " + "just now");
+    messages.appendChild(span).append("by " + sender + " : " + "just now");
     toBottom()
     $("#message").val("");
     return false;
@@ -69,7 +69,7 @@ var userlist;
         alink.appendChild(img);
         li.setAttribute("class", "background-transparent");
         messages.appendChild(li).append(alink)
-        messages.appendChild(span).append("by " + sender + ": " + "just now");
+        messages.appendChild(span).append("by " + sender + " : " + "just now");
         $("#file").val("");
         toBottom()
         return false;
@@ -93,7 +93,7 @@ var userlist;
       messages.appendChild(alink).append(filesName + "." + type[type.length - 1])
       li.setAttribute("class", "sender");
       messages.appendChild(li).append(alink);
-      messages.appendChild(span).append("by " + sender + ": " + "just now");
+      messages.appendChild(span).append("Send by " + sender + " : " + "just now");
       $("#file").val("");
       toBottom()
       return false;
@@ -106,7 +106,7 @@ var userlist;
     let span = document.createElement("span");
     let alink = document.createElement("a");
     li.setAttribute("class", "received");
-    if (data.sender = $('#received').val()) {
+    if (data.sender == $('#received').val()) {
       if ("msg" == data.type) {
         messages.appendChild(li).append(data.message);
       } else if ("image" == data.type) {
@@ -124,7 +124,7 @@ var userlist;
         messages.appendChild(alink).append(filename[filename.length - 1])
         messages.appendChild(li).append(alink);
       }
-      messages.appendChild(span).append("by " + data.received + ": " + "just now");
+      messages.appendChild(span).append("Send by " + data.received + " : " + "just now");
       toBottom()
     }
   });
@@ -161,7 +161,6 @@ socket.on('sent-to-connect', function (msg) {
 
 // fetching initial listuser from the database
 (function () {
-  console.log('ready');
   socket.emit('subscribe', {
     userId: sender,
     position: position,
@@ -172,8 +171,6 @@ socket.on('sent-to-connect', function (msg) {
 function startChat(received, socketId) {
   $("#messages").html('');
   $("#received").val(received);
-  received = received;
-  console.log(received);
   socketReceived = socketId;
   $(".bottom_wrapper").removeClass('display-disable')
   // fetching initial chat messages from the database
@@ -218,7 +215,7 @@ function startChat(received, socketId) {
         }
         messages
           .appendChild(span)
-          .append("by " + data.sender + ": " + formatTimeAgo(data.createdAt));
+          .append("Send by " + data.sender + " : " + formatTimeAgo(data.createdAt));
         // span.append("by " + data.sender + ": " + formatTimeAgo(data.createdAt));
         // messages.appendChild(li).append(span);
       });
